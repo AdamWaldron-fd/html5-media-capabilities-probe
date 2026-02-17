@@ -331,9 +331,11 @@
         const results = await MediaCapabilitiesProbe.probeAllCapabilities({
           cmafOptions: { testVideo: true, testAudio: true }
         });
+        console.log('Full probe results:', results);
         window.currentResults = results;
         displayResults(results);
       } catch (error) {
+        console.error('Error running probe:', error);
         alert('Error running probe: ' + error.message);
       } finally {
         showLoading(false);
@@ -442,31 +444,50 @@
     }
 
     function displayResults(results) {
+      console.log('Displaying results:', results);
+
       // Summary Tab
       let summaryHtml = '<h2>Capability Summary</h2>';
 
-      if (results.summary) {
-        summaryHtml += `
-          <div class="capability-status ${results.summary.dualDecodersSupported ? 'supported' : 'not-supported'}">
-            <span>Dual Decoders</span>
-            <span class="status-badge ${results.summary.dualDecodersSupported ? 'supported' : 'not-supported'}">
-              ${results.summary.dualDecodersSupported ? '✓ Supported' : '✗ Not Supported'}
-            </span>
-          </div>
-          <div class="capability-status ${results.summary.cbcsSupported ? 'supported' : 'not-supported'}">
-            <span>CBCS Encryption</span>
-            <span class="status-badge ${results.summary.cbcsSupported ? 'supported' : 'not-supported'}">
-              ${results.summary.cbcsSupported ? '✓ Supported' : '✗ Not Supported'}
-            </span>
-          </div>
-          <div class="capability-status ${results.summary.cmafSupported ? 'supported' : 'not-supported'}">
-            <span>CMAF Format</span>
-            <span class="status-badge ${results.summary.cmafSupported ? 'supported' : 'not-supported'}">
-              ${results.summary.cmafSupported ? '✓ Supported' : '✗ Not Supported'}
-            </span>
-          </div>
-        `;
-      }
+      // Handle both full probe and individual test results
+      const summary = results.summary || {};
+      const caps = results.capabilities || {};
+
+      // Get dual decoder support status
+      const dualDecodersSupported = summary.dualDecodersSupported !== undefined
+        ? summary.dualDecodersSupported
+        : (caps.dualDecoders && caps.dualDecoders.supported);
+
+      // Get CBCS support status
+      const cbcsSupported = summary.cbcsSupported !== undefined
+        ? summary.cbcsSupported
+        : (caps.cbcs && caps.cbcs.cbcsSupported);
+
+      // Get CMAF support status
+      const cmafSupported = summary.cmafSupported !== undefined
+        ? summary.cmafSupported
+        : (caps.cmaf && caps.cmaf.supported);
+
+      summaryHtml += `
+        <div class="capability-status ${dualDecodersSupported ? 'supported' : 'not-supported'}">
+          <span>Dual Decoders</span>
+          <span class="status-badge ${dualDecodersSupported ? 'supported' : 'not-supported'}">
+            ${dualDecodersSupported ? '✓ Supported' : '✗ Not Supported'}
+          </span>
+        </div>
+        <div class="capability-status ${cbcsSupported ? 'supported' : 'not-supported'}">
+          <span>CBCS Encryption</span>
+          <span class="status-badge ${cbcsSupported ? 'supported' : 'not-supported'}">
+            ${cbcsSupported ? '✓ Supported' : '✗ Not Supported'}
+          </span>
+        </div>
+        <div class="capability-status ${cmafSupported ? 'supported' : 'not-supported'}">
+          <span>CMAF Format</span>
+          <span class="status-badge ${cmafSupported ? 'supported' : 'not-supported'}">
+            ${cmafSupported ? '✓ Supported' : '✗ Not Supported'}
+          </span>
+        </div>
+      `;
 
       if (results.duration) {
         summaryHtml += `<div class="detail-item"><strong>Total Duration:</strong> ${results.duration.toFixed(2)}ms</div>`;
@@ -477,65 +498,65 @@
       // Details Tab
       let detailsHtml = '';
 
-      if (results.capabilities) {
-        if (results.capabilities.dualDecoders) {
-          const dd = results.capabilities.dualDecoders;
+      if (caps.dualDecoders) {
+          const dd = caps.dualDecoders;
           detailsHtml += `
             <div class="details-section">
               <h3>Dual Decoders Details</h3>
               <div class="detail-item">
+                <strong>Supported:</strong> ${dd.supported ? '✓ Yes' : '✗ No'}<br>
                 <strong>Max Concurrent Decoders:</strong> ${dd.maxConcurrentDecoders}<br>
-                <strong>Successfully Initialized:</strong> ${dd.details.successfullyInitialized}<br>
-                <strong>Simultaneous Playback:</strong> ${dd.details.simultaneousPlayback ? 'Yes' : 'No'}<br>
+                <strong>Successfully Initialized:</strong> ${dd.details.successfullyInitialized} / ${dd.details.testedCount}<br>
+                ${dd.details.simultaneousPlayback ? `<strong>Simultaneous Playback:</strong> ${dd.details.simultaneousPlayback}<br>` : ''}
                 <strong>Duration:</strong> ${dd.duration.toFixed(2)}ms
+                ${dd.details.errors && dd.details.errors.length > 0 ? `<br><strong>Errors:</strong> ${dd.details.errors.join(', ')}` : ''}
               </div>
             </div>
           `;
         }
 
-        if (results.capabilities.cbcs) {
-          const cbcs = results.capabilities.cbcs;
-          detailsHtml += `
-            <div class="details-section">
-              <h3>CBCS Encryption Details</h3>
-              <div class="detail-item">
-                <strong>EME Available:</strong> ${cbcs.emeAvailable ? 'Yes' : 'No'}<br>
-                <strong>Supported DRMs:</strong> ${cbcs.supportedDRMs.join(', ') || 'None'}<br>
-                <strong>Duration:</strong> ${cbcs.duration.toFixed(2)}ms
-              </div>
+      if (caps.cbcs) {
+        const cbcs = caps.cbcs;
+        detailsHtml += `
+          <div class="details-section">
+            <h3>CBCS Encryption Details</h3>
+            <div class="detail-item">
+              <strong>EME Available:</strong> ${cbcs.emeAvailable ? 'Yes' : 'No'}<br>
+              <strong>Supported DRMs:</strong> ${cbcs.supportedDRMs.join(', ') || 'None'}<br>
+              <strong>Duration:</strong> ${cbcs.duration.toFixed(2)}ms
             </div>
-          `;
-        }
+          </div>
+        `;
+      }
 
-        if (results.capabilities.cmaf) {
-          const cmaf = results.capabilities.cmaf;
-          detailsHtml += `
-            <div class="details-section">
-              <h3>CMAF Support Details</h3>
-              <div class="detail-item">
-                <strong>MSE Available:</strong> ${cmaf.mseAvailable ? 'Yes' : 'No'}<br>
-                <strong>Fragmented MP4:</strong> ${cmaf.fragmentedMP4Supported ? 'Yes' : 'No'}<br>
-                <strong>Duration:</strong> ${cmaf.duration.toFixed(2)}ms
-              </div>
-              ${cmaf.supportedVideoCodecs && cmaf.supportedVideoCodecs.length > 0 ? `
-                <div class="detail-item">
-                  <strong>Supported Video Codecs:</strong>
-                  <div class="codec-list">
-                    ${cmaf.supportedVideoCodecs.map(c => `<span class="codec-tag">${c}</span>`).join('')}
-                  </div>
-                </div>
-              ` : ''}
-              ${cmaf.supportedAudioCodecs && cmaf.supportedAudioCodecs.length > 0 ? `
-                <div class="detail-item">
-                  <strong>Supported Audio Codecs:</strong>
-                  <div class="codec-list">
-                    ${cmaf.supportedAudioCodecs.map(c => `<span class="codec-tag">${c}</span>`).join('')}
-                  </div>
-                </div>
-              ` : ''}
+      if (caps.cmaf) {
+        const cmaf = caps.cmaf;
+        detailsHtml += `
+          <div class="details-section">
+            <h3>CMAF Support Details</h3>
+            <div class="detail-item">
+              <strong>MSE Available:</strong> ${cmaf.mseAvailable ? 'Yes' : 'No'}<br>
+              <strong>Fragmented MP4:</strong> ${cmaf.fragmentedMP4Supported ? 'Yes' : 'No'}<br>
+              <strong>Duration:</strong> ${cmaf.duration.toFixed(2)}ms
             </div>
-          `;
-        }
+            ${cmaf.supportedVideoCodecs && cmaf.supportedVideoCodecs.length > 0 ? `
+              <div class="detail-item">
+                <strong>Supported Video Codecs:</strong>
+                <div class="codec-list">
+                  ${cmaf.supportedVideoCodecs.map(c => `<span class="codec-tag">${c}</span>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            ${cmaf.supportedAudioCodecs && cmaf.supportedAudioCodecs.length > 0 ? `
+              <div class="detail-item">
+                <strong>Supported Audio Codecs:</strong>
+                <div class="codec-list">
+                  ${cmaf.supportedAudioCodecs.map(c => `<span class="codec-tag">${c}</span>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
       }
 
       document.getElementById('detailsContent').innerHTML = detailsHtml || '<p>No detailed results available.</p>';
