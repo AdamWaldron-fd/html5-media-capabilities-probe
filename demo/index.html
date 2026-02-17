@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML5 Media Capabilities Probe - Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      color: #667eea;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .results {
+      display: none;
+    }
+
+    .results.active {
+      display: block;
+    }
+
+    .summary {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .summary h2 {
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+
+    .capability-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      margin: 8px 0;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #ccc;
+    }
+
+    .capability-status.supported {
+      border-left-color: #10b981;
+    }
+
+    .capability-status.not-supported {
+      border-left-color: #ef4444;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .status-badge.supported {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-badge.not-supported {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .details-section {
+      margin-bottom: 30px;
+    }
+
+    .details-section h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .detail-item {
+      background: #f8f9fa;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+    }
+
+    .detail-item strong {
+      color: #667eea;
+    }
+
+    .codec-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .codec-tag {
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .raw-output {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: #6b7280;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .info-box h4 {
+      color: #1e40af;
+      margin-bottom: 8px;
+    }
+
+    .info-box p {
+      color: #1e3a8a;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HTML5 Media Capabilities Probe</h1>
+      <p>Test your browser's support for advanced video playback features</p>
+    </header>
+
+    <div class="content">
+      <div class="info-box">
+        <h4>What does this tool test?</h4>
+        <p>
+          <strong>Dual Decoders:</strong> Ability to play multiple videos simultaneously (required for interstitial ads)<br>
+          <strong>CBCS Encryption:</strong> Support for CBCS encrypted content (Widevine/PlayReady/FairPlay)<br>
+          <strong>CMAF:</strong> Support for Common Media Application Format with various codecs
+        </p>
+      </div>
+
+      <div class="controls">
+        <button id="runAllBtn" onclick="runFullProbe()">Run Full Probe</button>
+        <button id="quickProbeBtn" onclick="runQuickProbe()">Quick Check</button>
+        <button id="dualDecoderBtn" onclick="runDualDecoderTest()">Test Dual Decoders</button>
+        <button id="cbcsBtn" onclick="runCBCSTest()">Test CBCS</button>
+        <button id="cmafBtn" onclick="runCMAFTest()">Test CMAF</button>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Running tests... This may take a few moments.</p>
+      </div>
+
+      <div class="results" id="results">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('summary')">Summary</button>
+          <button class="tab" onclick="switchTab('details')">Details</button>
+          <button class="tab" onclick="switchTab('raw')">Raw JSON</button>
+        </div>
+
+        <div id="tab-summary" class="tab-content active">
+          <div class="summary" id="summaryContent"></div>
+        </div>
+
+        <div id="tab-details" class="tab-content">
+          <div id="detailsContent"></div>
+        </div>
+
+        <div id="tab-raw" class="tab-content">
+          <pre class="raw-output" id="rawOutput"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import MediaCapabilitiesProbe from '../src/index.js';
+
+    // Make functions available globally for onclick handlers
+    window.MediaCapabilitiesProbe = MediaCapabilitiesProbe;
+    window.currentResults = null;
+
+    window.runFullProbe = async function() {
+      showLoading(true);
+      try {
+        const results = await MediaCapabilitiesProbe.probeAllCapabilities({
+          cmafOptions: { testVideo: true, testAudio: true }
+        });
+        window.currentResults = results;
+        displayResults(results);
+      } catch (error) {
+        alert('Error running probe: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    };
+
+    window.runQuickProbe = async function() {
+      showLoading(true);
+      try {
+        const results = await MediaCapabilitiesProbe.quickProbe();
+        window.currentResults = results;
+        displayQuickResults(results);
+      } catch (error) {
+        alert('Error running quick probe: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    };
+
+    window.runDualDecoderTest = async function() {
+      showLoading(true);
+      try {
+        const results = await MediaCapabilitiesProbe.detectDualDecoders();
+        window.currentResults = { capabilities: { dualDecoders: results } };
+        displayResults(window.currentResults);
+      } catch (error) {
+        alert('Error running dual decoder test: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    };
+
+    window.runCBCSTest = async function() {
+      showLoading(true);
+      try {
+        const results = await MediaCapabilitiesProbe.detectCBCSSupport();
+        window.currentResults = { capabilities: { cbcs: results } };
+        displayResults(window.currentResults);
+      } catch (error) {
+        alert('Error running CBCS test: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    };
+
+    window.runCMAFTest = async function() {
+      showLoading(true);
+      try {
+        const results = await MediaCapabilitiesProbe.detectCMAFSupport({
+          testVideo: true,
+          testAudio: true
+        });
+        window.currentResults = { capabilities: { cmaf: results } };
+        displayResults(window.currentResults);
+      } catch (error) {
+        alert('Error running CMAF test: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    };
+
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabName).classList.add('active');
+    };
+
+    function showLoading(show) {
+      document.getElementById('loading').classList.toggle('active', show);
+      document.getElementById('results').classList.toggle('active', !show);
+      document.querySelectorAll('button').forEach(btn => btn.disabled = show);
+    }
+
+    function displayQuickResults(results) {
+      const summaryHtml = `
+        <h2>Quick Probe Results</h2>
+        <div class="capability-status ${results.dualDecodersSupported ? 'supported' : 'not-supported'}">
+          <span>Dual Decoders</span>
+          <span class="status-badge ${results.dualDecodersSupported ? 'supported' : 'not-supported'}">
+            ${results.dualDecodersSupported ? '✓ Supported' : '✗ Not Supported'}
+          </span>
+        </div>
+        <div class="capability-status ${results.cbcsSupported ? 'supported' : 'not-supported'}">
+          <span>CBCS Encryption</span>
+          <span class="status-badge ${results.cbcsSupported ? 'supported' : 'not-supported'}">
+            ${results.cbcsSupported ? '✓ Supported' : '✗ Not Supported'}
+          </span>
+        </div>
+        <div class="capability-status ${results.cmafSupported ? 'supported' : 'not-supported'}">
+          <span>CMAF Format</span>
+          <span class="status-badge ${results.cmafSupported ? 'supported' : 'not-supported'}">
+            ${results.cmafSupported ? '✓ Supported' : '✗ Not Supported'}
+          </span>
+        </div>
+        <div class="detail-item">
+          <strong>Duration:</strong> ${results.duration.toFixed(2)}ms
+        </div>
+      `;
+
+      document.getElementById('summaryContent').innerHTML = summaryHtml;
+      document.getElementById('detailsContent').innerHTML = '<p>Run full probe for detailed results.</p>';
+      document.getElementById('rawOutput').textContent = JSON.stringify(results, null, 2);
+      document.getElementById('results').classList.add('active');
+    }
+
+    function displayResults(results) {
+      // Summary Tab
+      let summaryHtml = '<h2>Capability Summary</h2>';
+
+      if (results.summary) {
+        summaryHtml += `
+          <div class="capability-status ${results.summary.dualDecodersSupported ? 'supported' : 'not-supported'}">
+            <span>Dual Decoders</span>
+            <span class="status-badge ${results.summary.dualDecodersSupported ? 'supported' : 'not-supported'}">
+              ${results.summary.dualDecodersSupported ? '✓ Supported' : '✗ Not Supported'}
+            </span>
+          </div>
+          <div class="capability-status ${results.summary.cbcsSupported ? 'supported' : 'not-supported'}">
+            <span>CBCS Encryption</span>
+            <span class="status-badge ${results.summary.cbcsSupported ? 'supported' : 'not-supported'}">
+              ${results.summary.cbcsSupported ? '✓ Supported' : '✗ Not Supported'}
+            </span>
+          </div>
+          <div class="capability-status ${results.summary.cmafSupported ? 'supported' : 'not-supported'}">
+            <span>CMAF Format</span>
+            <span class="status-badge ${results.summary.cmafSupported ? 'supported' : 'not-supported'}">
+              ${results.summary.cmafSupported ? '✓ Supported' : '✗ Not Supported'}
+            </span>
+          </div>
+        `;
+      }
+
+      if (results.duration) {
+        summaryHtml += `<div class="detail-item"><strong>Total Duration:</strong> ${results.duration.toFixed(2)}ms</div>`;
+      }
+
+      document.getElementById('summaryContent').innerHTML = summaryHtml;
+
+      // Details Tab
+      let detailsHtml = '';
+
+      if (results.capabilities) {
+        if (results.capabilities.dualDecoders) {
+          const dd = results.capabilities.dualDecoders;
+          detailsHtml += `
+            <div class="details-section">
+              <h3>Dual Decoders Details</h3>
+              <div class="detail-item">
+                <strong>Max Concurrent Decoders:</strong> ${dd.maxConcurrentDecoders}<br>
+                <strong>Successfully Initialized:</strong> ${dd.details.successfullyInitialized}<br>
+                <strong>Simultaneous Playback:</strong> ${dd.details.simultaneousPlayback ? 'Yes' : 'No'}<br>
+                <strong>Duration:</strong> ${dd.duration.toFixed(2)}ms
+              </div>
+            </div>
+          `;
+        }
+
+        if (results.capabilities.cbcs) {
+          const cbcs = results.capabilities.cbcs;
+          detailsHtml += `
+            <div class="details-section">
+              <h3>CBCS Encryption Details</h3>
+              <div class="detail-item">
+                <strong>EME Available:</strong> ${cbcs.emeAvailable ? 'Yes' : 'No'}<br>
+                <strong>Supported DRMs:</strong> ${cbcs.supportedDRMs.join(', ') || 'None'}<br>
+                <strong>Duration:</strong> ${cbcs.duration.toFixed(2)}ms
+              </div>
+            </div>
+          `;
+        }
+
+        if (results.capabilities.cmaf) {
+          const cmaf = results.capabilities.cmaf;
+          detailsHtml += `
+            <div class="details-section">
+              <h3>CMAF Support Details</h3>
+              <div class="detail-item">
+                <strong>MSE Available:</strong> ${cmaf.mseAvailable ? 'Yes' : 'No'}<br>
+                <strong>Fragmented MP4:</strong> ${cmaf.fragmentedMP4Supported ? 'Yes' : 'No'}<br>
+                <strong>Duration:</strong> ${cmaf.duration.toFixed(2)}ms
+              </div>
+              ${cmaf.supportedVideoCodecs && cmaf.supportedVideoCodecs.length > 0 ? `
+                <div class="detail-item">
+                  <strong>Supported Video Codecs:</strong>
+                  <div class="codec-list">
+                    ${cmaf.supportedVideoCodecs.map(c => `<span class="codec-tag">${c}</span>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+              ${cmaf.supportedAudioCodecs && cmaf.supportedAudioCodecs.length > 0 ? `
+                <div class="detail-item">
+                  <strong>Supported Audio Codecs:</strong>
+                  <div class="codec-list">
+                    ${cmaf.supportedAudioCodecs.map(c => `<span class="codec-tag">${c}</span>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }
+      }
+
+      document.getElementById('detailsContent').innerHTML = detailsHtml || '<p>No detailed results available.</p>';
+
+      // Raw JSON Tab
+      document.getElementById('rawOutput').textContent = JSON.stringify(results, null, 2);
+
+      document.getElementById('results').classList.add('active');
+    }
+
+    // Auto-run quick probe on load
+    console.log('HTML5 Media Capabilities Probe loaded');
+    console.log('Click "Run Full Probe" to test all capabilities');
+  </script>
+</body>
+</html>

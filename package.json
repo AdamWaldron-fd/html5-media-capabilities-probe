@@ -1,0 +1,32 @@
+{
+  "name": "html5-media-capabilities-probe",
+  "version": "1.0.0",
+  "description": "A comprehensive JavaScript tool for probing HTML5 media capabilities including dual decoders, CBCS encryption, and CMAF support",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "html5",
+    "video",
+    "media",
+    "capabilities",
+    "probe",
+    "dual-decoder",
+    "cbcs",
+    "cmaf",
+    "drm",
+    "widevine",
+    "playready",
+    "fairplay",
+    "mse",
+    "eme"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
