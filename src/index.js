@@ -32,6 +32,12 @@ import {
   CMAF_COMBINED_CODECS
 } from './cmafSupport.js';
 
+import {
+  generateDeviceFingerprint,
+  getDeviceId,
+  getDeviceDetails
+} from './deviceFingerprint.js';
+
 /**
  * Runs all capability tests and returns comprehensive results
  * @param {Object} options - Configuration options
@@ -56,8 +62,23 @@ export async function probeAllCapabilities(options = {}) {
     timeout = 30000
   } = options;
 
+  // Generate device fingerprint
+  const deviceInfo = getDeviceDetails();
+
   const report = {
     timestamp: new Date().toISOString(),
+    deviceId: deviceInfo.deviceId,
+    device: {
+      make: deviceInfo.deviceMake,
+      model: deviceInfo.deviceModel,
+      browser: `${deviceInfo.browserName} ${deviceInfo.browserVersion}`,
+      gpu: deviceInfo.gpu,
+      cpuCores: deviceInfo.cpuCores,
+      ramGB: deviceInfo.ramGB,
+      screenResolution: deviceInfo.screenResolution,
+      pixelRatio: deviceInfo.pixelRatio,
+      timezone: deviceInfo.timezone
+    },
     userAgent: navigator.userAgent,
     capabilities: {},
     summary: {
@@ -172,6 +193,18 @@ export function generateReport(probeResults) {
   lines.push('='.repeat(60));
   lines.push('');
   lines.push(`Timestamp: ${probeResults.timestamp}`);
+
+  // Add device information if available
+  if (probeResults.deviceId && probeResults.device) {
+    lines.push(`Device ID: ${probeResults.deviceId}`);
+    lines.push(`Device: ${probeResults.device.make} - ${probeResults.device.model}`);
+    lines.push(`Browser: ${probeResults.device.browser}`);
+    lines.push(`GPU: ${probeResults.device.gpu}`);
+    lines.push(`CPU Cores: ${probeResults.device.cpuCores}${probeResults.device.ramGB !== 'unknown' ? ` | RAM: ${probeResults.device.ramGB}GB` : ''}`);
+    lines.push(`Screen: ${probeResults.device.screenResolution} @ ${probeResults.device.pixelRatio}x`);
+    lines.push(`Timezone: ${probeResults.device.timezone}`);
+  }
+
   lines.push(`User Agent: ${probeResults.userAgent}`);
   lines.push(`Total Duration: ${probeResults.duration.toFixed(2)}ms`);
   lines.push('');
@@ -260,7 +293,12 @@ export {
   getSupportedCMAFAudioCodecs,
   CMAF_VIDEO_CODECS,
   CMAF_AUDIO_CODECS,
-  CMAF_COMBINED_CODECS
+  CMAF_COMBINED_CODECS,
+
+  // Device Fingerprinting
+  generateDeviceFingerprint,
+  getDeviceId,
+  getDeviceDetails
 };
 
 // Default export
@@ -279,6 +317,11 @@ export default {
   hasCMAFSupport,
   getSupportedCMAFVideoCodecs,
   getSupportedCMAFAudioCodecs,
+
+  // Device Fingerprinting
+  generateDeviceFingerprint,
+  getDeviceId,
+  getDeviceDetails,
 
   // Constants
   KEY_SYSTEMS,

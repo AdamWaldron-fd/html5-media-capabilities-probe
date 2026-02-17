@@ -520,6 +520,21 @@
         </div>
       `;
 
+      // Add device information if available
+      if (results.deviceId && results.device) {
+        summaryHtml += `
+          <div class="detail-item" style="margin-top: 20px;">
+            <strong>Device ID:</strong> ${results.deviceId}<br>
+            <strong>Device:</strong> ${results.device.make} - ${results.device.model}<br>
+            <strong>Browser:</strong> ${results.device.browser}<br>
+            <strong>GPU:</strong> ${results.device.gpu}<br>
+            <strong>CPU Cores:</strong> ${results.device.cpuCores}${results.device.ramGB !== 'unknown' ? ` | <strong>RAM:</strong> ${results.device.ramGB}GB` : ''}<br>
+            <strong>Screen:</strong> ${results.device.screenResolution} @ ${results.device.pixelRatio}x<br>
+            <strong>Timezone:</strong> ${results.device.timezone}
+          </div>
+        `;
+      }
+
       if (results.duration) {
         summaryHtml += `<div class="detail-item"><strong>Total Duration:</strong> ${results.duration.toFixed(2)}ms</div>`;
       }

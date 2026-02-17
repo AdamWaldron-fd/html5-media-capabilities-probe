@@ -4,14 +4,23 @@ A comprehensive JavaScript tool for probing HTML5 media capabilities in any brow
 
 ## Features
 
-### 1. Dual Decoder Detection
+### 1. Device Fingerprinting
+Generates a unique device identifier by collecting comprehensive device-specific information:
+- **Hardware**: GPU (WebGL), CPU cores, RAM, screen resolution, pixel ratio
+- **Software**: Browser, OS, platform, timezone
+- **Capabilities**: Audio context, canvas rendering, WebGL capabilities
+- **Device ID**: Unique hash generated from all collected information
+
+This enables tracking test results across sessions and correlating capabilities with specific device configurations.
+
+### 2. Dual Decoder Detection
 Tests whether the environment supports multiple video elements playing simultaneously. This is critical for:
 - Interstitial ad playback
 - Picture-in-picture implementations
 - Multi-angle video playback
 - Seamless content transitions
 
-### 2. CBCS Encryption Support
+### 3. CBCS Encryption Support
 Detects support for CBCS (Content Based Cipher Scheme) encryption across major DRM systems:
 - **Widevine** (Google)
 - **PlayReady** (Microsoft)
@@ -20,7 +29,7 @@ Detects support for CBCS (Content Based Cipher Scheme) encryption across major D
 
 CBCS is increasingly used for encrypted content delivery and is required for many modern streaming services.
 
-### 3. CMAF Support
+### 4. CMAF Support
 Tests Media Source Extensions (MSE) support for CMAF (Common Media Application Format):
 - Fragmented MP4 (fMP4) container support
 - Multiple video codecs (H.264, H.265/HEVC, VP9, AV1)
@@ -112,6 +121,18 @@ const results = await MediaCapabilitiesProbe.probeAllCapabilities({
 ```javascript
 {
   timestamp: "2024-01-01T00:00:00.000Z",
+  deviceId: "abc123xyz",           // Unique device identifier
+  device: {                         // Device information
+    make: "Apple",
+    model: "iPhone (iOS 16.0)",
+    browser: "Safari 16.0",
+    gpu: "Apple - Apple GPU",
+    cpuCores: 6,
+    ramGB: 8,
+    screenResolution: "1170x2532",
+    pixelRatio: 3,
+    timezone: "America/New_York"
+  },
   userAgent: "Mozilla/5.0...",
   capabilities: {
     dualDecoders: { /* detailed results */ },
@@ -204,6 +225,41 @@ console.log(videoCodecs); // ['H.264 Main', 'H.265 Main', 'VP9 Profile 0']
 // Get supported audio codecs
 const audioCodecs = await MediaCapabilitiesProbe.getSupportedCMAFAudioCodecs();
 console.log(audioCodecs); // ['AAC-LC', 'HE-AAC', 'Opus']
+```
+
+#### Device Fingerprinting
+
+```javascript
+// Get complete device fingerprint with detailed information
+const deviceInfo = MediaCapabilitiesProbe.getDeviceDetails();
+console.log(deviceInfo);
+// {
+//   deviceId: "abc123xyz",
+//   deviceMake: "Apple",
+//   deviceModel: "iPhone (iOS 16.0)",
+//   browserName: "Safari",
+//   browserVersion: "16.0",
+//   cpuCores: 6,
+//   ramGB: 8,
+//   gpu: "Apple - Apple GPU",
+//   screenResolution: "1170x2532",
+//   pixelRatio: 3,
+//   timezone: "America/New_York",
+//   fingerprint: { /* detailed hardware/software info */ }
+// }
+
+// Get just the device ID (lightweight)
+const deviceId = MediaCapabilitiesProbe.getDeviceId();
+console.log(deviceId); // "abc123xyz"
+
+// Get raw fingerprint data
+const fingerprint = MediaCapabilitiesProbe.generateDeviceFingerprint();
+console.log(fingerprint);
+// {
+//   deviceId: "abc123xyz",
+//   deviceString: "concatenated device info...",
+//   details: { /* all collected information */ }
+// }
 ```
 
 ### Constants
@@ -311,6 +367,54 @@ async function selectDRMSystem() {
 }
 ```
 
+### Example 5: Device Tracking and Analytics
+
+```javascript
+async function reportCapabilitiesToAnalytics() {
+  const results = await MediaCapabilitiesProbe.probeAllCapabilities();
+
+  // Send comprehensive report to your analytics service
+  analytics.track('device_capabilities', {
+    deviceId: results.deviceId,
+    device: {
+      make: results.device.make,
+      model: results.device.model,
+      browser: results.device.browser,
+      gpu: results.device.gpu,
+      cpuCores: results.device.cpuCores,
+      ramGB: results.device.ramGB,
+      screenResolution: results.device.screenResolution
+    },
+    capabilities: {
+      dualDecoders: results.summary.dualDecodersSupported,
+      cbcs: results.summary.cbcsSupported,
+      cmaf: results.summary.cmafSupported
+    },
+    timestamp: results.timestamp
+  });
+
+  // Use device ID for session tracking
+  localStorage.setItem('deviceId', results.deviceId);
+
+  return results;
+}
+
+// Correlate playback issues with device capabilities
+async function logPlaybackError(error) {
+  const deviceId = MediaCapabilitiesProbe.getDeviceId();
+  const deviceInfo = MediaCapabilitiesProbe.getDeviceDetails();
+
+  errorLogger.report({
+    error: error.message,
+    deviceId: deviceId,
+    device: deviceInfo.deviceModel,
+    browser: deviceInfo.browserName,
+    gpu: deviceInfo.gpu
+  });
+}
+```
+
+
 ## Browser Compatibility
 
 This tool uses modern browser APIs:
@@ -364,7 +468,8 @@ html5-media-capabilities-probe/
 │   ├── index.js              # Main entry point
 │   ├── dualDecoder.js        # Dual decoder detection
 │   ├── cbcsEncryption.js     # CBCS encryption detection
-│   └── cmafSupport.js        # CMAF support detection
+│   ├── cmafSupport.js        # CMAF support detection
+│   └── deviceFingerprint.js  # Device fingerprinting
 ├── demo/
 │   └── index.html            # Interactive demo page
 ├── package.json
@@ -414,6 +519,34 @@ Validates CMAF support through:
 2. Optional SourceBuffer creation tests
 3. Codec-specific validation
 4. Sequence mode support testing
+
+### Device Fingerprinting
+
+Generates a unique device identifier by collecting:
+1. **Hardware Information**:
+   - GPU vendor and renderer (via WebGL)
+   - CPU cores (navigator.hardwareConcurrency)
+   - Device memory (navigator.deviceMemory)
+   - Screen resolution, color depth, pixel ratio
+   - Max touch points
+
+2. **Software Information**:
+   - User agent string
+   - Platform and vendor
+   - Browser language preferences
+   - Timezone and offset
+
+3. **Capability Fingerprints**:
+   - Audio context sample rate and channel count
+   - Canvas rendering fingerprint
+   - Available storage APIs
+
+4. **Device ID Generation**:
+   - All collected data is concatenated into a string
+   - A simple hash function generates a consistent, short device ID
+   - The ID remains stable across sessions for the same device/browser combination
+
+**Privacy Note**: The device fingerprint is generated client-side and is not transmitted unless explicitly sent by your application. The fingerprint can identify the device/browser combination but does not include personally identifiable information.
 
 ## License
 
