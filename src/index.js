@@ -38,9 +38,9 @@ import {
  * @param {boolean} options.testDualDecoders - Test dual decoder support (default: true)
  * @param {boolean} options.testCBCS - Test CBCS encryption support (default: true)
  * @param {boolean} options.testCMAF - Test CMAF support (default: true)
- * @param {Object} options.dualDecoderOptions - Options for dual decoder test
+ * @param {Object} options.dualDecoderOptions - Options for dual decoder test (count, timeout)
  * @param {Object} options.cbcsOptions - Options for CBCS test
- * @param {Object} options.cmafOptions - Options for CMAF test
+ * @param {Object} options.cmafOptions - Options for CMAF test (testVideo, testAudio, testSourceBuffers, testCombined, timeout)
  * @param {number} options.timeout - Global timeout in milliseconds (default: 30000)
  * @returns {Promise<Object>} Complete capability report
  */

@@ -76,11 +76,13 @@ function attachMediaSource(video) {
 
 /**
  * Tests if multiple video elements can be created and initialized simultaneously
- * @param {number} count - Number of decoders to test (default: 2)
- * @param {number} timeout - Timeout in milliseconds (default: 10000)
+ * @param {Object} options - Configuration options
+ * @param {number} options.count - Number of decoders to test (default: 2)
+ * @param {number} options.timeout - Timeout in milliseconds (default: 10000)
  * @returns {Promise<Object>} Test results
  */
-export async function detectDualDecoders(count = 2, timeout = 10000) {
+export async function detectDualDecoders(options = {}) {
+  const { count = 2, timeout = 10000 } = options;
   const startTime = performance.now();
   const videoElements = [];
   const results = {
@@ -184,6 +186,6 @@ export async function detectDualDecoders(count = 2, timeout = 10000) {
  * @returns {Promise<boolean>}
  */
 export async function hasDualDecoderSupport() {
-  const result = await detectDualDecoders(2, 5000);
+  const result = await detectDualDecoders({ count: 2, timeout: 5000 });
   return result.supported;
 }

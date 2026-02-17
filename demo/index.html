@@ -325,12 +325,46 @@
     window.MediaCapabilitiesProbe = MediaCapabilitiesProbe;
     window.currentResults = null;
 
+    // Default options for each test type
+    const defaultDualDecoderOptions = {
+      count: 2,        // Test 2 concurrent decoders
+      timeout: 10000   // 10 second timeout for dual decoder tests
+    };
+
+    const defaultCBCSOptions = {};
+
+    const defaultCMAFOptions = {
+      testSourceBuffers: false,  // Skip SourceBuffer tests for faster results
+      testVideo: true,            // Test video codecs
+      testAudio: true,            // Test audio codecs
+      testCombined: false,        // Skip combined codec tests for faster results
+      timeout: 20000              // 20 second timeout for CMAF tests
+    };
+
     window.runFullProbe = async function() {
       showLoading(true);
       try {
-        const results = await MediaCapabilitiesProbe.probeAllCapabilities({
-          cmafOptions: { testVideo: true, testAudio: true }
-        });
+        // Default comprehensive options for probeAllCapabilities
+        const defaultOptions = {
+          // Enable all capability tests
+          testDualDecoders: true,
+          testCBCS: true,
+          testCMAF: true,
+
+          // Dual decoder options
+          dualDecoderOptions: defaultDualDecoderOptions,
+
+          // CBCS encryption options
+          cbcsOptions: defaultCBCSOptions,
+
+          // CMAF support options
+          cmafOptions: defaultCMAFOptions,
+
+          // Global timeout for all tests
+          timeout: 30000  // 30 second global timeout
+        };
+
+        const results = await MediaCapabilitiesProbe.probeAllCapabilities(defaultOptions);
         console.log('Full probe results:', results);
         window.currentResults = results;
         displayResults(results);
@@ -358,7 +392,7 @@
     window.runDualDecoderTest = async function() {
       showLoading(true);
       try {
-        const results = await MediaCapabilitiesProbe.detectDualDecoders();
+        const results = await MediaCapabilitiesProbe.detectDualDecoders(defaultDualDecoderOptions);
         window.currentResults = { capabilities: { dualDecoders: results } };
         displayResults(window.currentResults);
       } catch (error) {
@@ -371,7 +405,7 @@
     window.runCBCSTest = async function() {
       showLoading(true);
       try {
-        const results = await MediaCapabilitiesProbe.detectCBCSSupport();
+        const results = await MediaCapabilitiesProbe.detectCBCSSupport(defaultCBCSOptions);
         window.currentResults = { capabilities: { cbcs: results } };
         displayResults(window.currentResults);
       } catch (error) {
@@ -384,10 +418,7 @@
     window.runCMAFTest = async function() {
       showLoading(true);
       try {
-        const results = await MediaCapabilitiesProbe.detectCMAFSupport({
-          testVideo: true,
-          testAudio: true
-        });
+        const results = await MediaCapabilitiesProbe.detectCMAFSupport(defaultCMAFOptions);
         window.currentResults = { capabilities: { cmaf: results } };
         displayResults(window.currentResults);
       } catch (error) {
