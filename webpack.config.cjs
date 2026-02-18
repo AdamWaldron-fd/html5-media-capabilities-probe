@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'production',
@@ -10,6 +11,13 @@ module.exports = {
     libraryTarget: 'umd',
     globalObject: 'this'
   },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './src/template.html',
+      scriptLoading: 'blocking',
+      inject: 'body'
+    })
+  ],
   module: {
     rules: [
       {
