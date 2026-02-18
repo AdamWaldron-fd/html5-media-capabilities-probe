@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "npx http-server . -p 8080 -o /demo",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:webos": "bash build-webos-bundle.sh",
+    "package:webos": "npm run build:webos && cd build && ares-package -n ./webos"
   },
   "keywords": [
     "html5",
@@ -29,5 +31,9 @@
   "repository": {
     "type": "git",
     "url": ""
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0"
   }
 }
