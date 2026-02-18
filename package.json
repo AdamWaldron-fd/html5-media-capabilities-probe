@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "npx http-server . -p 8080 -o /demo",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:webos": "bash build-webos-bundle.sh",
+    "package:webos": "npm run build:webos && cd build && ares-package -n ./webos"
   },
   "keywords": [
     "html5",

@@ -1,0 +1,14 @@
+{
+  "id": "com.media.capabilities.probe",
+  "version": "1.0.0",
+  "vendor": "Media Capabilities Probe",
+  "type": "web",
+  "main": "index.html",
+  "title": "HTML5 Media Capabilities Probe",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "requiredPermissions": [
+    "media"
+  ],
+  "resolution": "1920x1080"
+}
