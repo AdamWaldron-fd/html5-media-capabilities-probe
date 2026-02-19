@@ -91,12 +91,7 @@ export async function detectDualDecoders(options = {}) {
     details: {
       testedCount: count,
       successfullyInitialized: 0,
-      errors: [],
-      browserInfo: {
-        userAgent: navigator.userAgent,
-        vendor: navigator.vendor,
-        platform: navigator.platform
-      }
+      errors: []
     },
     duration: 0
   };

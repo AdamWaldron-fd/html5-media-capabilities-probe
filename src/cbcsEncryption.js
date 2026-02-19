@@ -176,11 +176,6 @@ export async function detectCBCSSupport(options = {}) {
     keySystems: [],
     supportedDRMs: [],
     details: {
-      browserInfo: {
-        userAgent: navigator.userAgent,
-        vendor: navigator.vendor,
-        platform: navigator.platform
-      },
       testedKeySystems: keySystemsToTest.length,
       testedCodecs: codecs
     },

@@ -186,11 +186,6 @@ export async function detectCMAFSupport(options = {}) {
     supportedAudioCodecs: [],
     supportedCombinedCodecs: [],
     details: {
-      browserInfo: {
-        userAgent: navigator.userAgent,
-        vendor: navigator.vendor,
-        platform: navigator.platform
-      },
       mseVersion: window.MediaSource ? 'available' : 'not available'
     },
     duration: 0
